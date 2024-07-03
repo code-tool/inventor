@@ -1,0 +1,41 @@
+replicas: 1
+annotations: {}
+
+config:
+  APP_ENV: "prod"
+  REDIS_ADDR: "127.0.0.1"
+  REDIS_PORT: "6379"
+  REDIS_DBNO: "7"
+  TTL_SECONDS: "21600"
+
+secret:
+  API_TOKEN: 'ChangeMe'
+  SD_TOKEN: 'ChangeMe'
+
+main:
+  image: "jushcherbak/inventor:0.0.2"
+  pullPolicy: "IfNotPresent"
+
+redis:
+  enabled: true
+  image: "redis:6.2.14"
+  pullPolicy: "IfNotPresent"
+
+service:
+  annotations: {}
+
+ingress:
+  annotations:
+    nginx.ingress.kubernetes.io/service-upstream: "true"
+    nginx.ingress.kubernetes.io/proxy-request-buffering: "off"
+  paths:
+    - '/target'
+    - '/discover' # check SD_TOKEN is set
+  ingressClassName: ""
+  enabled: false
+  tls: false
+  secretName: ""
+  host: ""
+
+servicemonitor:
+  enabled: true

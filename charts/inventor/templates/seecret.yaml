@@ -1,0 +1,9 @@
+kind: Secret
+apiVersion: v1
+metadata:
+  name: inventor
+data:
+{{- range $key, $value := .Values.secret }}
+  {{ $key }}: {{ $value | toString | b64enc }}
+{{- end }}
+type: Opaque

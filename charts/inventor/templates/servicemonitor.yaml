@@ -1,0 +1,19 @@
+{{- if .Values.servicemonitor.enabled }}
+kind: ServiceMonitor
+apiVersion: monitoring.coreos.com/v1
+metadata:
+  name: inventor
+  labels:
+    app: inventor
+    type: backend
+spec:
+  endpoints:
+  - interval: 60s
+    path: /metrics
+    port: http
+  jobLabel: inventor
+  selector:
+    matchLabels:
+      app: inventor
+      type: backend
+{{- end -}}

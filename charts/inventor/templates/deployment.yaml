@@ -1,0 +1,43 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: inventor
+  labels:
+    app: inventor
+    type: backend
+spec:
+  revisionHistoryLimit: 2
+  selector:
+    matchLabels:
+      app: inventor
+      type: backend
+  replicas: {{ default 1 .Values.replicas }}
+  template:
+    metadata:
+      labels:
+        app: inventor
+        type: backend
+      {{- if .Values.annotations }}
+      annotations:
+      {{- range $key, $value := .Values.annotations }}
+        {{ $key }}: {{ $value | quote }}
+      {{- end }}
+      {{- end }}
+    spec:
+      containers:
+{{ if .Values.redis.enabled  }}
+      - name: redis
+        imagePullPolicy: {{ .Values.redis.pullPolicy }}
+        image: {{ .Values.redis.image | quote }}
+{{ end }}
+      - name: main
+        imagePullPolicy: {{ .Values.main.pullPolicy }}
+        image: {{ .Values.main.image | quote }}
+        env:
+          {{ include "inventor.config" . | indent 10 }}
+        readinessProbe:
+          httpGet:
+            path: /healthcheck
+            port: 80
+          initialDelaySeconds: 10
+          periodSeconds: 60

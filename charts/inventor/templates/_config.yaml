@@ -1,0 +1,44 @@
+{{- define "inventor.config" }}
+- name: APP_ENV
+  valueFrom:
+    configMapKeyRef:
+      name: inventor
+      key: APP_ENV
+
+- name: REDIS_ADDR
+  valueFrom:
+    configMapKeyRef:
+      name: inventor
+      key: REDIS_ADDR
+
+- name: REDIS_PORT
+  valueFrom:
+    configMapKeyRef:
+      name: inventor
+      key: REDIS_PORT
+
+- name: REDIS_DBNO
+  valueFrom:
+    configMapKeyRef:
+      name: inventor
+      key: REDIS_DBNO
+
+- name: TTL_SECONDS
+  valueFrom:
+    configMapKeyRef:
+      name: inventor
+      key: TTL_SECONDS
+
+- name: API_TOKEN
+  valueFrom:
+    secretKeyRef:
+      name: inventor
+      key: API_TOKEN
+
+- name: SD_TOKEN
+  valueFrom:
+    secretKeyRef:
+      name: inventor
+      key: SD_TOKEN
+      optional: true
+{{ end -}}
