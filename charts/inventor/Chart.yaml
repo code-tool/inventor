@@ -1,5 +1,5 @@
 apiVersion: v2
 name: inventor
-version: 0.0.2
+version: 0.0.3
 sources:
   - https://github.com/shcherbak/inventor
