@@ -2,10 +2,19 @@ apiVersion: v1
 entries:
   inventor:
   - apiVersion: v2
+    created: "2024-07-04T11:57:10.244539144Z"
+    digest: 474405d5ef49304117556c0fe3f7f9fcbdbfded047cebe564f6cea4b67f6ce2c
+    name: inventor
+    sources:
+    - https://github.com/shcherbak/inventor
+    urls:
+    - https://github.com/code-tool/inventor/releases/download/inventor-0.0.3/inventor-0.0.3.tgz
+    version: 0.0.3
+  - apiVersion: v2
     created: "2024-07-03T06:37:23.772523978Z"
     digest: 45d521a6c6cbdf6bea02c6e8f986ce4a942b4c1728ee72ab1640f720a53e87ab
     name: inventor
     urls:
     - https://github.com/code-tool/inventor/releases/download/inventor-0.0.2/inventor-0.0.2.tgz
     version: 0.0.2
-generated: "2024-07-03T06:37:23.77253055Z"
+generated: "2024-07-04T11:57:10.244552399Z"
