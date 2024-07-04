@@ -1,0 +1,10 @@
+{
+  "static_config": {
+    "targets": ["10.0.40.2:9093", "10.0.40.3:9093"],
+    "labels": {
+        "__meta_datacenter": "dc-02",
+        "__meta_prometheus_job": "alertmanager"
+    },
+    "target_group": "alertmanager-exporter-group"
+  }
+}
