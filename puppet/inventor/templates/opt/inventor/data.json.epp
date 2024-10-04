@@ -1,0 +1,18 @@
+<%- |
+  Hash $data ,
+| -%>
+{
+  "static_config": {
+    "targets": ["<%= $data['target'] %>"],
+    "labels": {
+        <% if 'labels' in $data { -%>
+        <% $data['labels'].each | String $key, String $val | { -%>
+        "<%= $key %>": "<%= $val %>",
+        <% } -%>
+        <% } -%>
+        "datacenter": "<%= $data['dc'] %>",
+        "job": "<%= $data['job'] %>"
+    },
+    "target_group": "<%= $data['group'] %>"
+  }
+}
