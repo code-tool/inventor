@@ -1,0 +1,10 @@
+<%- |
+  String $key ,
+  String $url,
+  Hash $info,
+| -%>
+#!/usr/bin/env bash
+set -e
+<% $info.each | String $exporter, Hash $data | { -%>
+curl -XPUT -H "x-api-token: <%= $key %>" <%= $url %> -d @/opt/inventor/<%= $exporter %>.json
+<% } -%>

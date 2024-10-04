@@ -1,0 +1,8 @@
+<%- |
+  String $cron,
+| -%>
+PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+MAILTO=""
+
+# inventor
+ <%= $cron %> root bash /opt/inventor/run.sh
