@@ -61,6 +61,12 @@ scrape_configs:
   * `API_TOKEN`: API token for manipulating targets
   * `SD_TOKEN`: Options token for Prometheus HTTP SD, is empty by default and not validating (header `x-sd-token`)
 
+
+## Custom discovered labels
+
+  * `__meta_inventor_sd_module`: contains element of `modules: []`, useful fo relabeling to add `__param_module`
+
+
 ## API Methods
 
 * **GET /discover**

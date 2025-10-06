@@ -2,9 +2,9 @@
   "static_config": {
     "targets": ["10.0.10.2:9100", "10.0.10.3:9100", "10.0.10.4:9100", "10.0.10.5:9100"],
     "labels": {
-        "__meta_datacenter": "dc-01",
-        "__meta_prometheus_job": "node"
+      "__meta_datacenter": "dc-01",
+      "__meta_prometheus_job": "smart"
     },
-    "target_group": "node-exporter-group"
+    "target_group": "smartctl-exporter-group"
   }
 }

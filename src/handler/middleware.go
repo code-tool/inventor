@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"io"
+	"maps"
 	"net/http"
 	"strings"
 	"sync"
@@ -87,7 +88,17 @@ func (s *SDTargetsMiddleware) handleGetAll(w http.ResponseWriter, r *http.Reques
 	res := []HttpSD{}
 	targets, _ := s.SDTargets.Scan(s.Context, s.Client)
 	for _, target := range targets.Items {
-		res = append(res, HttpSD{target.Targets, target.Labels})
+		if len(target.Modules) > 0 {
+			for _, module := range target.Modules {
+				additionalLabels := map[string]string{
+					"__meta_inventor_sd_module": module,
+				}
+				maps.Copy(additionalLabels, target.Labels)
+				res = append(res, HttpSD{target.Targets, additionalLabels})
+			}
+		} else {
+			res = append(res, HttpSD{target.Targets, target.Labels})
+		}
 	}
 	err := json.NewEncoder(w).Encode(res)
 	if err != nil {
@@ -107,7 +118,17 @@ func (s *SDTargetsMiddleware) handleGetByGroupName(w http.ResponseWriter, r *htt
 	targets, _ := s.SDTargets.Scan(s.Context, s.Client)
 	for _, target := range targets.Items {
 		if target.Group == grp {
-			res = append(res, HttpSD{target.Targets, target.Labels})
+			if len(target.Modules) > 0 {
+				for _, module := range target.Modules {
+					additionalLabels := map[string]string{
+						"__meta_inventor_sd_module": module,
+					}
+					maps.Copy(additionalLabels, target.Labels)
+					res = append(res, HttpSD{target.Targets, additionalLabels})
+				}
+			} else {
+				res = append(res, HttpSD{target.Targets, target.Labels})
+			}
 		}
 	}
 	err := json.NewEncoder(w).Encode(res)

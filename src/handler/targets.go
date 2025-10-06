@@ -18,6 +18,7 @@ type StaticConfig struct {
 	Targets   []string          `json:"targets"`
 	Labels    map[string]string `json:"labels"`
 	Group     string            `json:"target_group"`
+	Modules   []string          `json:"modules,omitempty"`
 	UpdatedAt string            `json:"updated_at"` // unix timestamp
 }
 

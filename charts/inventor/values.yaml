@@ -13,12 +13,12 @@ secret:
   SD_TOKEN: 'ChangeMe'
 
 main:
-  image: "jushcherbak/inventor:0.0.3"
+  image: "jushcherbak/inventor:0.1.1"
   pullPolicy: "IfNotPresent"
 
 redis:
   enabled: true
-  image: "redis:6.2.14"
+  image: "redis:7.2.11"
   pullPolicy: "IfNotPresent"
 
 service:
