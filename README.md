@@ -64,8 +64,50 @@ scrape_configs:
 
 ## Custom discovered labels
 
-  * `__meta_inventor_sd_module`: contains element of `modules: []`, useful fo relabeling to add `__param_module`
+  * `__meta_inventor_sd_module`: contains element of `modules: []`, useful for relabeling to add `__param_module`
 
+Data file with modules for [exporter_exporter](https://github.com/QubitProducts/exporter_exporter) example:
+```json
+{
+  "static_config": {
+  "targets": ["host.local:9999"],
+  "labels": {
+    "__inventor_sd_metrics_path": "/proxy",
+    "__inventor_sd_job": "inventor-exporter-proxy",
+    "datacenter": "the-dc"
+  },
+  "modules": ["node_exporter","ipmi_exporter"],
+  "target_group": "inventor-default"
+  }
+}
+```
+
+Prometheus SD config with 
+[relabel_config](https://prometheus.io/docs/prometheus/latest/configuration/configuration/#relabel_config) example
+```yaml
+scrape_configs:
+  - job_name: http_sd_mygroup
+    http_sd_configs:
+      - url: http://127.0.0.1:9101/group?name=mygroup
+        # if SD_TOKEN env variable is set
+        headers:
+          - "x-sd-token: REDACTED"
+    relabel_configs:
+      # discovered label
+      - source_labels: [ __meta_inventor_sd_module ]
+        target_label: __param_module
+      # labels from data file
+      - source_labels: [ __inventor_sd_metrics_path ]
+        target_label: __metrics_path__
+      - source_labels: [ __inventor_sd_job ]
+        target_label: job
+```
+
+This produces scrape jobs with `module` parameter:
+```
+http://host.local:9999/proxy&module=node_exporter
+http://host.local:9999/proxy&module=ipmi_exporter
+```
 
 ## API Methods
 
