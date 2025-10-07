@@ -88,7 +88,7 @@ Prometheus SD config with
 scrape_configs:
   - job_name: http_sd_mygroup
     http_sd_configs:
-      - url: http://127.0.0.1:9101/group?name=mygroup
+      - url: http://127.0.0.1:9101/discover
         # if SD_TOKEN env variable is set
         headers:
           - "x-sd-token: REDACTED"
