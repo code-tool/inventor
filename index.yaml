@@ -2,6 +2,15 @@ apiVersion: v1
 entries:
   inventor:
   - apiVersion: v2
+    created: "2026-01-12T15:31:53.782188252Z"
+    digest: 9390d26fecdc4c12fdea3878dbc54464e6d56f434cf86699f1a8e2998d72e404
+    name: inventor
+    sources:
+    - https://github.com/shcherbak/inventor
+    urls:
+    - https://github.com/code-tool/inventor/releases/download/inventor-0.2.0/inventor-0.2.0.tgz
+    version: 0.2.0
+  - apiVersion: v2
     created: "2025-12-18T22:42:29.764219822Z"
     digest: 5d341857e552bb1b09563dbfa495c2f0c490783cb38ff9d4e57c3e7ef80f9efe
     name: inventor
@@ -35,4 +44,4 @@ entries:
     urls:
     - https://github.com/code-tool/inventor/releases/download/inventor-0.0.2/inventor-0.0.2.tgz
     version: 0.0.2
-generated: "2025-12-18T22:42:29.764236764Z"
+generated: "2026-01-12T15:31:53.7822084Z"
