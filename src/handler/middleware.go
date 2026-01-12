@@ -9,8 +9,8 @@ import (
 	"strings"
 	"sync"
 
-	"github.com/go-redis/redis/v9"
 	"github.com/google/uuid"
+	"github.com/redis/go-redis/v9"
 )
 
 type SDTargetsMiddleware struct {
@@ -22,6 +22,7 @@ type SDTargetsMiddleware struct {
 	SdToken   string
 	TTL       int
 }
+
 
 type HttpSD struct {
 	Targets []string          `json:"targets"`
