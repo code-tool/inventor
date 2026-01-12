@@ -133,7 +133,7 @@ docker build -t ghcr.io/code-tool/inventor/inventor:$(cat VERSION.txt) --build-a
 ```
 pulling image:
 ```bash
-ghcr.io/code-tool/inventor/inventor:0.0.3
+ghcr.io/code-tool/inventor/inventor:0.2.0
 ```
 
 ## License
