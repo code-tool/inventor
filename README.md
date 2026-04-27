@@ -82,7 +82,7 @@ Data file with modules for [exporter_exporter](https://github.com/QubitProducts/
 }
 ```
 
-Prometheus SD config with 
+Prometheus SD config with
 [relabel_config](https://prometheus.io/docs/prometheus/latest/configuration/configuration/#relabel_config) example
 ```yaml
 scrape_configs:
@@ -133,7 +133,7 @@ docker build -t ghcr.io/code-tool/inventor/inventor:$(cat VERSION.txt) --build-a
 ```
 pulling image:
 ```bash
-ghcr.io/code-tool/inventor/inventor:0.2.0
+ghcr.io/code-tool/inventor/inventor:0.3.0
 ```
 
 ## License

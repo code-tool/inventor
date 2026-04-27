@@ -13,12 +13,12 @@ secret:
   SD_TOKEN: 'ChangeMe'
 
 main:
-  image: "ghcr.io/code-tool/inventor/inventor:0.2.0"
+  image: "ghcr.io/code-tool/inventor/inventor:0.3.0"
   pullPolicy: "IfNotPresent"
 
 redis:
   enabled: true
-  image: "redis:8.2.3"
+  image: "redis:8.2.5"
   pullPolicy: "IfNotPresent"
 
 service:

@@ -1,5 +1,5 @@
-FROM golang:1.25.5-trixie AS builder
-ARG BUILD_VERSION='0.2.0'
+FROM golang:1.25.9-trixie AS builder
+ARG BUILD_VERSION='0.3.0'
 ENV LISTEN_PORT=9101
 WORKDIR /opt/inventor/
 COPY go.mod ./

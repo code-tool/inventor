@@ -8,6 +8,7 @@ import (
 	"net/http"
 	"strings"
 	"sync"
+	"crypto/subtle"
 
 	"github.com/google/uuid"
 	"github.com/redis/go-redis/v9"
@@ -140,6 +141,7 @@ func (s *SDTargetsMiddleware) handleGetByGroupName(w http.ResponseWriter, r *htt
 }
 
 func (s *SDTargetsMiddleware) handleInsert(w http.ResponseWriter, r *http.Request) {
+	r.Body = http.MaxBytesReader(w, r.Body, 64*1024) // 64 KB
 	var req StaticConfigDocument
 	var res IDDocument
 	err := json.NewDecoder(r.Body).Decode(&req)
@@ -162,6 +164,7 @@ func (s *SDTargetsMiddleware) handleInsert(w http.ResponseWriter, r *http.Reques
 }
 
 func (s *SDTargetsMiddleware) handleDelete(w http.ResponseWriter, r *http.Request) {
+	r.Body = http.MaxBytesReader(w, r.Body, 64*1024)
 	var req IDDocument
 	err := json.NewDecoder(r.Body).Decode(&req)
 	if err != nil {
@@ -181,6 +184,7 @@ func (s *SDTargetsMiddleware) handleDelete(w http.ResponseWriter, r *http.Reques
 }
 
 func (s *SDTargetsMiddleware) handleGetByID(w http.ResponseWriter, r *http.Request) {
+	r.Body = http.MaxBytesReader(w, r.Body, 64*1024)
 	var req IDDocument
 	err := json.NewDecoder(r.Body).Decode(&req)
 	if err != nil {
@@ -212,20 +216,12 @@ func (s *SDTargetsMiddleware) HealthCheck(w http.ResponseWriter, r *http.Request
 
 func (s *SDTargetsMiddleware) isApiTokenValid(r *http.Request) bool {
 	token := r.Header.Get("x-api-token")
-	if token != s.ApiToken {
-		return false
-	} else {
-		return true
-	}
+  return subtle.ConstantTimeCompare([]byte(token), []byte(s.ApiToken)) == 1
 }
 
 func (s *SDTargetsMiddleware) isSdTokenValid(r *http.Request) bool {
 	token := r.Header.Get("x-sd-token")
-	if token != s.SdToken {
-		return false
-	} else {
-		return true
-	}
+	return subtle.ConstantTimeCompare([]byte(token), []byte(s.SdToken)) == 1
 }
 
 func (s *SDTargetsMiddleware) forbiddenResponse(w http.ResponseWriter) {

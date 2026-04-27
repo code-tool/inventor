@@ -86,7 +86,7 @@ func (c *SDTargets) Scan(ctx context.Context, con *redis.Client) (SDTargets, err
 		}
 	}
 	if err := iter.Err(); err != nil {
-		panic(err)
+		return targets, err
 	}
 	return targets, nil
 }

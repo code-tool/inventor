@@ -13,6 +13,7 @@ import (
 	"strconv"
 	"sync"
 	"syscall"
+	"time"
 
 	"github.com/google/uuid"
 	"github.com/prometheus/client_golang/prometheus"
@@ -76,6 +77,9 @@ func configureServer() {
 	server = &http.Server{
 		Addr:    fmt.Sprintf(":%s", config.GetConfig().LISTEN_PORT),
 		Handler: nil,
+		ReadTimeout:  10 * time.Second,
+		WriteTimeout: 30 * time.Second,
+		IdleTimeout:  60 * time.Second,
 	}
 	server.RegisterOnShutdown(func() {
 		log.Println("Shutting down server.")
