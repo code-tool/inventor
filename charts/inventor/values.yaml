@@ -37,5 +37,18 @@ ingress:
   secretName: ""
   host: ""
 
+gatewayApi:
+  enabled: false
+  # parentRefs:
+  #   - name: my-gateway
+  #     namespace: gateway-system
+  #     sectionName: https
+  parentRefs: []
+  host: ""
+  paths:
+    - '/target'
+    - '/discover' # check SD_TOKEN is set
+  annotations: {}
+
 servicemonitor:
   enabled: true
