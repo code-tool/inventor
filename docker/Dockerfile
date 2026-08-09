@@ -1,4 +1,4 @@
-FROM golang:1.25.9-trixie AS builder
+FROM golang:1.25.12-trixie AS builder
 ARG BUILD_VERSION='0.3.0'
 ENV LISTEN_PORT=9101
 WORKDIR /opt/inventor/
@@ -13,8 +13,11 @@ WORKDIR /opt/inventor/
 RUN apt-get update \
   && apt-get install -y --no-install-recommends \
     curl \
-  && rm -rf /var/cache/apt/archives/*
-COPY --from=builder /opt/inventor/inventor .
+  && rm -rf /var/cache/apt/archives/* \
+  && groupadd --system --gid 1000 inventor \
+  && useradd --system --uid 1000 --gid inventor --no-create-home inventor
+COPY --from=builder --chown=inventor:inventor /opt/inventor/inventor .
 
+USER inventor
 EXPOSE ${LISTEN_PORT}
 CMD ["/opt/inventor/inventor"]

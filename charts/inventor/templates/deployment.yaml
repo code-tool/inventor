@@ -1,43 +1,76 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: inventor
+  name: {{ .Release.Name }}
   labels:
-    app: inventor
+    app: {{ .Release.Name }}
     type: backend
 spec:
   revisionHistoryLimit: 2
   selector:
     matchLabels:
-      app: inventor
+      app: {{ .Release.Name }}
       type: backend
   replicas: {{ default 1 .Values.replicas }}
   template:
     metadata:
       labels:
-        app: inventor
+        app: {{ .Release.Name }}
         type: backend
-      {{- if .Values.annotations }}
       annotations:
+        checksum/config: {{ include (print $.Template.BasePath "/config.yaml") . | sha256sum }}
+        checksum/secret: {{ include (print $.Template.BasePath "/secret.yaml") . | sha256sum }}
       {{- range $key, $value := .Values.annotations }}
         {{ $key }}: {{ $value | quote }}
       {{- end }}
-      {{- end }}
     spec:
+      {{- with .Values.podSecurityContext }}
+      securityContext: {{ toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.nodeSelector }}
+      nodeSelector: {{ toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.affinity }}
+      affinity: {{ toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.tolerations }}
+      tolerations: {{ toYaml . | nindent 8 }}
+      {{- end }}
       containers:
 {{ if .Values.redis.enabled  }}
       - name: redis
         imagePullPolicy: {{ .Values.redis.pullPolicy }}
-        image: {{ .Values.redis.image | quote }}
+        image: {{ printf "%s:%s" .Values.redis.image .Values.redis.tag | quote }}
+        {{- with .Values.redis.resources }}
+        resources: {{ toYaml . | nindent 12 }}
+        {{- end }}
+        {{- with .Values.redis.securityContext }}
+        securityContext: {{ toYaml . | nindent 12 }}
+        {{- end }}
 {{ end }}
       - name: main
         imagePullPolicy: {{ .Values.main.pullPolicy }}
-        image: {{ .Values.main.image | quote }}
+        image: {{ printf "%s:%s" .Values.main.image ( .Values.main.tag | default .Chart.AppVersion ) | quote }}
         env:
           {{ include "inventor.config" . | indent 10 }}
+        {{- with .Values.main.resources }}
+        resources: {{ toYaml . | nindent 12 }}
+        {{- end }}
+        {{- with .Values.main.securityContext }}
+        securityContext: {{ toYaml . | nindent 12 }}
+        {{- end }}
+        ports:
+          - name: http
+            containerPort: {{ .Values.config.LISTEN_PORT | int }}
         readinessProbe:
           httpGet:
             path: /healthcheck
-            port: 80
+            port: http
+          initialDelaySeconds: 10
+          periodSeconds: 60
+        livenessProbe:
+          httpGet:
+            path: /healthcheck
+            port: http
           initialDelaySeconds: 10
           periodSeconds: 60

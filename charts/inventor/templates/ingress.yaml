@@ -2,7 +2,7 @@
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
-  name: inventor
+  name: {{ .Release.Name }}
   {{- if .Values.ingress.annotations }}
   annotations:
   {{- range $key, $value := .Values.ingress.annotations }}
@@ -30,7 +30,7 @@ spec:
             pathType: ImplementationSpecific
             backend:
               service:
-                name: inventor
+                name: {{ $.Release.Name }}
                 port:
                   number: 80
           {{- end }}

@@ -2,43 +2,49 @@
 - name: APP_ENV
   valueFrom:
     configMapKeyRef:
-      name: inventor
+      name: {{ .Release.Name }}
       key: APP_ENV
+
+- name: LISTEN_PORT
+  valueFrom:
+    configMapKeyRef:
+      name: {{ .Release.Name }}
+      key: LISTEN_PORT
 
 - name: REDIS_ADDR
   valueFrom:
     configMapKeyRef:
-      name: inventor
+      name: {{ .Release.Name }}
       key: REDIS_ADDR
 
 - name: REDIS_PORT
   valueFrom:
     configMapKeyRef:
-      name: inventor
+      name: {{ .Release.Name }}
       key: REDIS_PORT
 
 - name: REDIS_DBNO
   valueFrom:
     configMapKeyRef:
-      name: inventor
+      name: {{ .Release.Name }}
       key: REDIS_DBNO
 
 - name: TTL_SECONDS
   valueFrom:
     configMapKeyRef:
-      name: inventor
+      name: {{ .Release.Name }}
       key: TTL_SECONDS
 
 - name: API_TOKEN
   valueFrom:
     secretKeyRef:
-      name: inventor
+      name: {{ .Release.Name }}
       key: API_TOKEN
 
 - name: SD_TOKEN
   valueFrom:
     secretKeyRef:
-      name: inventor
+      name: {{ .Release.Name }}
       key: SD_TOKEN
       optional: true
 {{ end -}}

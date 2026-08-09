@@ -1,7 +1,7 @@
 kind: Service
 apiVersion: v1
 metadata:
-  name: inventor
+  name: {{ .Release.Name }}
   {{- if .Values.service.annotations }}
   annotations:
   {{- range $key, $value := .Values.service.annotations }}
@@ -9,14 +9,14 @@ metadata:
   {{- end }}
   {{- end }}
   labels:
-    app: inventor
+    app: {{ .Release.Name }}
     type: backend
 spec:
   selector:
-    app: inventor
+    app: {{ .Release.Name }}
     type: backend
   ports:
     - name: http
       protocol: TCP
       port: 80
-      targetPort: 80
+      targetPort: http

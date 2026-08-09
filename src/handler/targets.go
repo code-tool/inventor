@@ -6,7 +6,6 @@ import (
 	"errors"
 	"fmt"
 	"log"
-	"strings"
 	"time"
 
 	"github.com/google/uuid"
@@ -27,11 +26,12 @@ type SDTargets struct {
 }
 
 var (
-	ErrInsertFailed = errors.New("Insert failed")
-	ErrDeleteFailed = errors.New("Delete failed")
-	ErrMarshlFailed = errors.New("Marshal failed")
-	ErrIDNotFound   = errors.New("Id not found")
-	ErrNoKeysFound  = errors.New("No keys found")
+	ErrInsertFailed    = errors.New("Insert failed")
+	ErrDeleteFailed    = errors.New("Delete failed")
+	ErrMarshlFailed    = errors.New("Marshal failed")
+	ErrUnmarshalFailed = errors.New("Unmarshal failed")
+	ErrIDNotFound      = errors.New("Id not found")
+	ErrNoKeysFound     = errors.New("No keys found")
 )
 
 func (c *SDTargets) Insert(target StaticConfig, ctx context.Context, con *redis.Client, ttl int) (uuid.UUID, error) {
@@ -55,6 +55,9 @@ func (c *SDTargets) Insert(target StaticConfig, ctx context.Context, con *redis.
 func (c *SDTargets) Delete(id uuid.UUID, ctx context.Context, con *redis.Client) (bool, error) {
 	result, err := con.Del(ctx, id.String()).Result()
 	if err != nil {
+		return false, ErrDeleteFailed
+	}
+	if result == 0 {
 		return false, ErrIDNotFound
 	}
 	log.Printf("Deleting target uuid: %s, count: %v", id, result)
@@ -67,30 +70,65 @@ func (c *SDTargets) Retrieve(id uuid.UUID, ctx context.Context, con *redis.Clien
 		return StaticConfig{}, ErrIDNotFound
 	}
 	rel := StaticConfig{}
-	json.Unmarshal([]byte(result), &rel)
+	if err := json.Unmarshal([]byte(result), &rel); err != nil {
+		return StaticConfig{}, ErrUnmarshalFailed
+	}
 	return rel, nil
 }
 
 func (c *SDTargets) Scan(ctx context.Context, con *redis.Client) (SDTargets, error) {
-	var targets = SDTargets{
+	targets := SDTargets{
 		Items: make(map[uuid.UUID]StaticConfig),
 	}
+
+	var uids []uuid.UUID
+	var keys []string
 	iter := con.Scan(ctx, 0, "*", 0).Iterator()
 	for iter.Next(ctx) {
 		uid, err := uuid.Parse(iter.Val())
 		if err != nil {
 			log.Printf("Can't parse uuid: %s, %v", iter.Val(), err)
 			continue
-		} else {
-			targets.Items[uid], _ = c.Retrieve(uid, ctx, con)
 		}
+		uids = append(uids, uid)
+		keys = append(keys, iter.Val())
 	}
 	if err := iter.Err(); err != nil {
 		return targets, err
 	}
+	if len(keys) == 0 {
+		return targets, nil
+	}
+
+	values, err := con.MGet(ctx, keys...).Result()
+	if err != nil {
+		return targets, err
+	}
+	for i, val := range values {
+		if val == nil {
+			// Key expired between SCAN and MGET.
+			continue
+		}
+		str, ok := val.(string)
+		if !ok {
+			log.Printf("Unexpected value type for key %s", keys[i])
+			continue
+		}
+		var item StaticConfig
+		if err := json.Unmarshal([]byte(str), &item); err != nil {
+			log.Printf("Can't unmarshal target %s: %v", keys[i], err)
+			continue
+		}
+		targets.Items[uids[i]] = item
+	}
+
 	return targets, nil
 }
 
 func UUIDFromStringArray(str []string) uuid.UUID {
-	return uuid.NewSHA1(uuid.NameSpaceDNS, []byte(strings.Join(str, ",")))
+	// JSON-encode rather than join with a plain separator: each element is
+	// quoted, so a comma inside one address can't be confused with the
+	// separator between two addresses (e.g. ["a,b"] vs ["a","b"]).
+	b, _ := json.Marshal(str)
+	return uuid.NewSHA1(uuid.NameSpaceDNS, b)
 }

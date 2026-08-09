@@ -1,25 +1,61 @@
+# The bundled `redis` sidecar only works correctly with replicas: 1, because
+# each replica will get its own Redis, so /discover would return different
+# results depending on which pod served the request. If you need replicas > 1,
+# set redis.enabled: false and point config.REDIS_ADDR/REDIS_PORT at an
+# external (shared) Redis instance instead.
 replicas: 1
 annotations: {}
+nodeSelector: {}
+tolerations: []
+affinity: {}
+podSecurityContext:
+  seccompProfile:
+    type: RuntimeDefault
 
 config:
   APP_ENV: "prod"
+  LISTEN_PORT: "9101"
   REDIS_ADDR: "127.0.0.1"
   REDIS_PORT: "6379"
   REDIS_DBNO: "7"
   TTL_SECONDS: "21600"
 
 secret:
-  API_TOKEN: 'ChangeMe'
-  SD_TOKEN: 'ChangeMe'
+  # Gates /target (target registration/removal, must be set explicitly.
+  API_TOKEN: ""
+  # Optional (see src/config): leaving it empty disables x-sd-token validation
+  # on /discover and /group. That's a valid choice if those endpoints are only
+  # reachable internally.
+  SD_TOKEN: ""
 
 main:
-  image: "ghcr.io/code-tool/inventor/inventor:0.3.0"
+  image: "ghcr.io/code-tool/inventor/inventor"
+  tag: ""
   pullPolicy: "IfNotPresent"
+  resources: {}
+  securityContext:
+    runAsNonRoot: true
+    allowPrivilegeEscalation: false
+    readOnlyRootFilesystem: true
+    capabilities:
+      drop: ["ALL"]
 
 redis:
+  # Only safe if replicas: 1. Set this to false and configure 
+  # config.REDIS_ADDR/REDIS_PORT for an external Redis when running more than 
+  # one replica.
   enabled: true
-  image: "redis:8.2.5"
+  image: "redis"
+  tag: "8.2.8"
   pullPolicy: "IfNotPresent"
+  resources: {}
+  # the official redis image's built-in non-root user
+  securityContext:
+    runAsNonRoot: true
+    runAsUser: 999
+    allowPrivilegeEscalation: false
+    capabilities:
+      drop: ["ALL"]
 
 service:
   annotations: {}
@@ -29,8 +65,9 @@ ingress:
     nginx.ingress.kubernetes.io/service-upstream: "true"
     nginx.ingress.kubernetes.io/proxy-request-buffering: "off"
   paths:
-    - '/target'
+    - '/target'   # check API_TOKEN is set
     - '/discover' # check SD_TOKEN is set
+    - '/group'    # check SD_TOKEN is set
   ingressClassName: ""
   enabled: false
   tls: false
@@ -46,8 +83,9 @@ gatewayApi:
   parentRefs: []
   host: ""
   paths:
-    - '/target'
+    - '/target'   # check API_TOKEN is set
     - '/discover' # check SD_TOKEN is set
+    - '/group'    # check SD_TOKEN is set
   annotations: {}
 
 servicemonitor:

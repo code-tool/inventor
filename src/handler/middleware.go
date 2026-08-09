@@ -54,6 +54,8 @@ func (s *SDTargetsMiddleware) HandleSDTarget(w http.ResponseWriter, r *http.Requ
 		case "DELETE":
 			w.Header().Set("Content-Type", "application/json")
 			s.handleDelete(w, r)
+		default:
+			s.methodNotAllowedResponse(w)
 		}
 	}
 }
@@ -69,6 +71,8 @@ func (s *SDTargetsMiddleware) HandleDiscover(w http.ResponseWriter, r *http.Requ
 	case "GET":
 		w.Header().Set("Content-Type", "application/json")
 		s.handleGetAll(w, r)
+	default:
+		s.methodNotAllowedResponse(w)
 	}
 }
 
@@ -83,12 +87,18 @@ func (s *SDTargetsMiddleware) HandleDiscoverGroup(w http.ResponseWriter, r *http
 	case "GET":
 		w.Header().Set("Content-Type", "application/json")
 		s.handleGetByGroupName(w, r)
+	default:
+		s.methodNotAllowedResponse(w)
 	}
 }
 
 func (s *SDTargetsMiddleware) handleGetAll(w http.ResponseWriter, r *http.Request) {
 	res := []HttpSD{}
-	targets, _ := s.SDTargets.Scan(s.Context, s.Client)
+	targets, err := s.SDTargets.Scan(s.Context, s.Client)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
 	for _, target := range targets.Items {
 		if len(target.Modules) > 0 {
 			for _, module := range target.Modules {
@@ -102,7 +112,7 @@ func (s *SDTargetsMiddleware) handleGetAll(w http.ResponseWriter, r *http.Reques
 			res = append(res, HttpSD{target.Targets, target.Labels})
 		}
 	}
-	err := json.NewEncoder(w).Encode(res)
+	err = json.NewEncoder(w).Encode(res)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
@@ -117,7 +127,11 @@ func (s *SDTargetsMiddleware) handleGetByGroupName(w http.ResponseWriter, r *htt
 		http.Error(w, "Get parameter `name` is not defined", http.StatusBadRequest)
 		return
 	}
-	targets, _ := s.SDTargets.Scan(s.Context, s.Client)
+	targets, err := s.SDTargets.Scan(s.Context, s.Client)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
 	for _, target := range targets.Items {
 		if target.Group == grp {
 			if len(target.Modules) > 0 {
@@ -133,7 +147,7 @@ func (s *SDTargetsMiddleware) handleGetByGroupName(w http.ResponseWriter, r *htt
 			}
 		}
 	}
-	err := json.NewEncoder(w).Encode(res)
+	err = json.NewEncoder(w).Encode(res)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
@@ -172,6 +186,10 @@ func (s *SDTargetsMiddleware) handleDelete(w http.ResponseWriter, r *http.Reques
 		return
 	}
 	res, e := s.SDTargets.Delete(req.ID, s.Context, s.Client)
+	if e == ErrIDNotFound {
+		http.Error(w, e.Error(), http.StatusNotFound)
+		return
+	}
 	if e != nil {
 		http.Error(w, e.Error(), http.StatusBadRequest)
 		return
@@ -228,6 +246,12 @@ func (s *SDTargetsMiddleware) forbiddenResponse(w http.ResponseWriter) {
 	w.Header().Set("Content-Type", "text/plain")
 	w.WriteHeader(http.StatusForbidden)
 	io.WriteString(w, "FORBIDDEN")
+}
+
+func (s *SDTargetsMiddleware) methodNotAllowedResponse(w http.ResponseWriter) {
+	w.Header().Set("Content-Type", "text/plain")
+	w.WriteHeader(http.StatusMethodNotAllowed)
+	io.WriteString(w, "METHOD NOT ALLOWED")
 }
 
 func FlushBufferOnShutdown(shutdownWaiter *sync.WaitGroup) {

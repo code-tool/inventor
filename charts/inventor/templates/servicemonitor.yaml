@@ -2,18 +2,18 @@
 kind: ServiceMonitor
 apiVersion: monitoring.coreos.com/v1
 metadata:
-  name: inventor
+  name: {{ .Release.Name }}
   labels:
-    app: inventor
+    app: {{ .Release.Name }}
     type: backend
 spec:
   endpoints:
   - interval: 60s
     path: /metrics
     port: http
-  jobLabel: inventor
+  jobLabel: app
   selector:
     matchLabels:
-      app: inventor
+      app: {{ .Release.Name }}
       type: backend
 {{- end -}}

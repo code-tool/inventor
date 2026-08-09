@@ -4,7 +4,7 @@ Prometheus HTTP SD implementation
 
 ## Description
 
-The Inventor is a Prometheus HTTP SD Server allows users to dynamcially add or remove prometheus targets and labels and expose it to a [Prometheus HTTP SD](https://prometheus.io/docs/prometheus/latest/http_sd/) job.
+The Inventor is a Prometheus HTTP SD Server allows users to dynamically add or remove prometheus targets and labels and expose it to a [Prometheus HTTP SD](https://prometheus.io/docs/prometheus/latest/http_sd/) job.
 
 ## Usage
 
@@ -17,15 +17,33 @@ go run main.go
 Installing with Helm
 ```bash
 helm repo add inventor https://code-tool.github.io/inventor/
+helm install inventor inventor/inventor
 ```
+> `secret.API_TOKEN` has no default - `helm install`/`helm template` refuses to render until
+> You set it explicitly, e.g. `--set secret.API_TOKEN=...`. `secret.SD_TOKEN` is optional and
+> defaults to empty, matching the app's own behavior (see below) - only set it if you expose
+> `/discover`, `/group` outside the cluster.
 
 Registering new target:
 ```bash
 curl -X PUT -H "x-api-token: secret" http://127.0.0.1:9101/target \
--d '{"static_config": {"targets": ["10.0.10.2:9100",], "labels": {"__meta_datacenter": "dc-01", "__meta_prometheus_job": "node"}, "target_group": "mygroup"}}'
+-d '{"static_config": {"targets": ["10.0.10.2:9100"], "labels": {"__meta_datacenter": "dc-01", "__meta_prometheus_job": "node"}, "target_group": "mygroup"}}'
 ```
 
-More examples: `./test/end-to-end`
+Fetching a target by id (ids are deterministic - this is what the `PUT` above returns
+for `targets: ["10.0.10.2:9100"]`):
+```bash
+curl -X GET -H "x-api-token: secret" http://127.0.0.1:9101/target \
+-d '{"id": "3ebd7d3f-feb7-5a81-aa0d-89c9d0a516ed"}'
+```
+
+Removing a target by id:
+```bash
+curl -X DELETE -H "x-api-token: secret" http://127.0.0.1:9101/target \
+-d '{"id": "3ebd7d3f-feb7-5a81-aa0d-89c9d0a516ed"}'
+```
+
+More examples: `tests/end-to-end`
 
 Prometheus SD config example
 ```yaml
@@ -52,14 +70,16 @@ scrape_configs:
 ```
 
 
-## Configuration Environmet Valiables
+## Configuration Environment Variables
 
-  * `REDIS_ADDR`: redis server addres to store metrics and targets
+  * `REDIS_ADDR`: redis server address to store metrics and targets
   * `REDIS_PORT`: redis server port
   * `REDIS_DBNO`: redis server keyspace
   * `TTL_SECONDS`: ttl for storing target, default is 6h (21600 seconds)
   * `API_TOKEN`: API token for manipulating targets
-  * `SD_TOKEN`: Options token for Prometheus HTTP SD, is empty by default and not validating (header `x-sd-token`)
+  * `SD_TOKEN`: Optional token for Prometheus HTTP SD, is empty by default and not validating (header `x-sd-token`)
+  * `LISTEN_PORT`: HTTP listen port, default is `9101`
+  * `APP_ENV`: when unset, config is loaded from a `.env` file in the working directory; when set, all variables above must be present in the real environment
 
 
 ## Custom discovered labels
@@ -133,9 +153,9 @@ docker build -t ghcr.io/code-tool/inventor/inventor:$(cat VERSION.txt) --build-a
 ```
 pulling image:
 ```bash
-ghcr.io/code-tool/inventor/inventor:0.3.0
+docker pull ghcr.io/code-tool/inventor/inventor:$(cat VERSION.txt)
 ```
 
 ## License
 
-Covered under the [MIT license](LICENSE.md).
+Covered under the [MIT license](LICENSE).

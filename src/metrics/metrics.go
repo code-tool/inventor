@@ -30,12 +30,16 @@ func (cc SDTargetsCollector) Describe(ch chan<- *prometheus.Desc) {
 }
 
 func (cc SDTargetsCollector) Collect(ch chan<- prometheus.Metric) {
-	rels, _ := cc.TargetInfo.SDTargets.Scan(cc.TargetInfo.Context, cc.TargetInfo.Client)
+	rels, err := cc.TargetInfo.SDTargets.Scan(cc.TargetInfo.Context, cc.TargetInfo.Client)
+	if err != nil {
+		ch <- prometheus.NewInvalidMetric(osReleseMetricDesc, err)
+		return
+	}
 	for id, rel := range rels.Items {
 		for _, target := range rel.Targets {
 			ch <- prometheus.MustNewConstMetric(
 				osReleseMetricDesc,
-				prometheus.CounterValue,
+				prometheus.GaugeValue,
 				osReleaseMetricValue,
 				fmt.Sprint(id),
 				fmt.Sprint(target),
