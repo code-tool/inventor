@@ -2,6 +2,17 @@ apiVersion: v1
 entries:
   inventor:
   - apiVersion: v2
+    appVersion: 1.0.0
+    created: "2026-08-09T08:54:42.310584331Z"
+    description: A Helm chart for Inventor Prometheus HTTP SD Server
+    digest: 520f494a721ba7d6a062cbec12835c6961872ac29732af3eace22711a3fd819e
+    name: inventor
+    sources:
+    - https://github.com/shcherbak/inventor
+    urls:
+    - https://github.com/code-tool/inventor/releases/download/inventor-1.0.0/inventor-1.0.0.tgz
+    version: 1.0.0
+  - apiVersion: v2
     created: "2026-08-08T22:48:02.544167193Z"
     digest: 6f4c6ea7ffad32712576ae96d7bc72dc930db64fe58336e7373b34f467841ed4
     name: inventor
@@ -62,4 +73,4 @@ entries:
     urls:
     - https://github.com/code-tool/inventor/releases/download/inventor-0.0.2/inventor-0.0.2.tgz
     version: 0.0.2
-generated: "2026-08-08T22:48:02.54419208Z"
+generated: "2026-08-09T08:54:42.310609297Z"
