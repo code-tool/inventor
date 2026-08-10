@@ -1,10 +1,10 @@
 # inventor
 
-Prometheus HTTP SD implementation
+Prometheus HTTP SD (Service Discovery) implementation
 
 ## Description
 
-The Inventor is a Prometheus HTTP SD Server allows users to dynamically add or remove prometheus targets and labels and expose it to a [Prometheus HTTP SD](https://prometheus.io/docs/prometheus/latest/http_sd/) job.
+The Inventor is a Prometheus HTTP SD (Service Discovery) Server allows users to dynamically add or remove prometheus targets and labels and expose it to a [Prometheus HTTP SD](https://prometheus.io/docs/prometheus/latest/http_sd/) job.
 
 ## Usage
 
