@@ -18,6 +18,6 @@ RUN apt-get update \
   && useradd --system --uid 1000 --gid inventor --no-create-home inventor
 COPY --from=builder --chown=inventor:inventor /opt/inventor/inventor .
 
-USER inventor
+USER 1000:1000
 EXPOSE ${LISTEN_PORT}
 CMD ["/opt/inventor/inventor"]

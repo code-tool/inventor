@@ -1,7 +1,7 @@
 apiVersion: v2
 name: inventor
-version: 1.0.0
-appVersion: 1.0.0
+version: 1.0.1
+appVersion: 1.0.1
 description: A Helm chart for Inventor Prometheus HTTP SD Server
 sources:
   - https://github.com/shcherbak/inventor
