@@ -7,7 +7,6 @@ import (
 	"maps"
 	"net/http"
 	"strings"
-	"sync"
 	"crypto/subtle"
 
 	"github.com/google/uuid"
@@ -252,8 +251,4 @@ func (s *SDTargetsMiddleware) methodNotAllowedResponse(w http.ResponseWriter) {
 	w.Header().Set("Content-Type", "text/plain")
 	w.WriteHeader(http.StatusMethodNotAllowed)
 	io.WriteString(w, "METHOD NOT ALLOWED")
-}
-
-func FlushBufferOnShutdown(shutdownWaiter *sync.WaitGroup) {
-	shutdownWaiter.Done()
 }

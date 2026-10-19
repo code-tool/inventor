@@ -42,12 +42,12 @@ main:
       drop: ["ALL"]
 
 redis:
-  # Only safe if replicas: 1. Set this to false and configure 
-  # config.REDIS_ADDR/REDIS_PORT for an external Redis when running more than 
+  # Only safe if replicas: 1. Set this to false and configure
+  # config.REDIS_ADDR/REDIS_PORT for an external Redis when running more than
   # one replica.
   enabled: true
   image: "redis"
-  tag: "8.2.8"
+  tag: "8.2.10"
   pullPolicy: "IfNotPresent"
   resources: {}
   # the official redis image's built-in non-root user

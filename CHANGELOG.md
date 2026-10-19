@@ -2,6 +2,12 @@
 
 Notable changes, newest first.
 
+## 1.1.0 - 2026-10-19
+
+- Upgraded to Go 1.27 and pinned the build toolchain to go1.27.2, which fixes several standard-library vulnerabilities in `net/http` (HTTP/2) and `crypto/tls`. Local builds now pick up the patched toolchain automatically, not only the Docker image.
+- Graceful shutdown now actually waits for in-flight requests (up to 25s) before exiting on SIGTERM/SIGINT/SIGQUIT; previously the process exited immediately and cut them off. A second signal still kills it right away.
+- Fixed the end-to-end smoke test, which had been failing since the UUID scheme change: it now reads target ids from the `PUT` response instead of hardcoding them.
+
 ## 1.0.0 - 2026-08-09
 
 - Chart resources are now scoped to the release name, so two installs can coexist in one namespace (previously everything was hardcoded).

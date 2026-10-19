@@ -2,16 +2,15 @@ package main
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"inventor/src/config"
 	"inventor/src/handler"
 	"inventor/src/metrics"
 	"log"
 	"net/http"
-	"os"
 	"os/signal"
 	"strconv"
-	"sync"
 	"syscall"
 	"time"
 
@@ -22,9 +21,13 @@ import (
 	"github.com/redis/go-redis/v9"
 )
 
+// shutdownTimeout bounds how long in-flight requests may drain after a
+// termination signal. Kept below Kubernetes' default 30s grace period so the
+// process exits on its own before it gets SIGKILLed.
+const shutdownTimeout = 25 * time.Second
+
 var (
 	server         *http.Server
-	shutdownWaiter sync.WaitGroup
 	registerTarget *handler.SDTargetsMiddleware
 	buildVersion   string
 )
@@ -63,34 +66,34 @@ func main() {
 
 	prometheus.MustRegister(TargetCollector)
 
-	shutdownWaiter.Add(1)
+	sigCtx, stop := signal.NotifyContext(context.Background(), syscall.SIGTERM, syscall.SIGQUIT, syscall.SIGINT)
+	defer stop()
+
 	configureServer()
-	initSignalHandler()
 	initRouting()
-	startServer()
-	shutdownWaiter.Wait()
+	go startServer()
+
+	<-sigCtx.Done()
+	// Restore default signal handling: a second signal kills the process
+	// immediately instead of waiting for the drain to finish.
+	stop()
+	log.Println("OS signal received, shutting down server.")
+	shutdownServer()
+	if err := con.Close(); err != nil {
+		log.Printf("Redis client Close: %v.", err)
+	}
 	log.Println("Exiting server")
 }
 
 func configureServer() {
 	log.Printf("Creating server on port %s.", config.GetConfig().LISTEN_PORT)
 	server = &http.Server{
-		Addr:    fmt.Sprintf(":%s", config.GetConfig().LISTEN_PORT),
-		Handler: nil,
+		Addr:         fmt.Sprintf(":%s", config.GetConfig().LISTEN_PORT),
+		Handler:      nil,
 		ReadTimeout:  10 * time.Second,
 		WriteTimeout: 30 * time.Second,
 		IdleTimeout:  60 * time.Second,
 	}
-	server.RegisterOnShutdown(func() {
-		log.Println("Shutting down server.")
-		handler.FlushBufferOnShutdown(&shutdownWaiter)
-	})
-}
-
-func initSignalHandler() {
-	sigChan := make(chan os.Signal, 1)
-	signal.Notify(sigChan, syscall.SIGTERM, syscall.SIGQUIT, syscall.SIGINT)
-	go handleSignal(server, sigChan)
 }
 
 func initRouting() {
@@ -103,18 +106,20 @@ func initRouting() {
 
 func startServer() {
 	log.Printf("Starting http server. Build [%s]", buildVersion)
-	if err := server.ListenAndServe(); err != http.ErrServerClosed {
+	if err := server.ListenAndServe(); !errors.Is(err, http.ErrServerClosed) {
 		log.Fatalf("HTTP server ListenAndServe: %v.", err)
-		shutdownWaiter.Done()
 	}
 }
 
-func handleSignal(server *http.Server, signals <-chan os.Signal) {
-	log.Println("Listening OS signals.")
-	for sig := range signals {
-		log.Printf("OS signal received [%s].", sig.String())
-		if err := server.Shutdown(context.Background()); err != nil {
-			log.Fatalf("HTTP server Shutdown: %v.", err)
+// shutdownServer stops accepting new connections and blocks until in-flight
+// requests finish or shutdownTimeout expires, then force-closes the rest.
+func shutdownServer() {
+	ctx, cancel := context.WithTimeout(context.Background(), shutdownTimeout)
+	defer cancel()
+	if err := server.Shutdown(ctx); err != nil {
+		log.Printf("HTTP server Shutdown: %v, forcing close.", err)
+		if err := server.Close(); err != nil {
+			log.Printf("HTTP server Close: %v.", err)
 		}
 	}
 }
