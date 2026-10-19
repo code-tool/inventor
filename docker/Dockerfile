@@ -1,4 +1,4 @@
-FROM golang:1.25.12-trixie AS builder
+FROM golang:1.27.2-trixie AS builder
 ARG BUILD_VERSION='0.3.0'
 ENV LISTEN_PORT=9101
 WORKDIR /opt/inventor/
